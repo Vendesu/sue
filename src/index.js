@@ -6,6 +6,9 @@ const { handleInstallRDP, handleInstallDockerRDP, handleVPSCredentials, handleWi
 const { handleInstallDedicatedRDP, handleDedicatedVPSCredentials, showDedicatedOSSelection, handleDedicatedOSSelection } = require('./handlers/dedicatedRdpHandler');
 const { handleDeposit, handleDepositAmount, handlePendingPayment } = require('./handlers/depositHandler');
 const { handleAddBalance, processAddBalance, handleBroadcast, processBroadcast } = require('./handlers/adminHandler');
+const UserManagementHandler = require('./handlers/userManagementHandler');
+const DigitalOceanHandler = require('./handlers/digitalOceanHandler');
+const VPSHandler = require('./handlers/vpsHandler');
 const { handleFAQ } = require('./handlers/faqHandler');
 const { handleTutorial } = require('./handlers/tutorialHandler');
 const { handleProviders } = require('./handlers/providerHandler');
@@ -150,6 +153,78 @@ bot.on('callback_query', async (query) => {
         }
         else if (data === 'install_dedicated_rdp') {
             await handleInstallDedicatedRDP(bot, chatId, messageId, sessionManager);
+        }
+        else if (data === 'vps_menu') {
+            await VPSHandler.handleVPSMenu(bot, chatId, messageId);
+        }
+        else if (data === 'vps_regular') {
+            await VPSHandler.handleVPSRegular(bot, chatId, messageId);
+        }
+        else if (data === 'vps_rdp') {
+            await VPSHandler.handleVPSRDP(bot, chatId, messageId);
+        }
+        else if (data.startsWith('select_vps_regular_')) {
+            await VPSHandler.handleSelectVPSRegular(bot, query, sessionManager);
+        }
+        else if (data.startsWith('select_vps_rdp_')) {
+            await VPSHandler.handleSelectVPSRDP(bot, query, sessionManager);
+        }
+        else if (data.startsWith('select_region_')) {
+            await VPSHandler.handleSelectRegion(bot, query, sessionManager);
+        }
+        else if (data.startsWith('vps_windows_')) {
+            await VPSHandler.handleWindowsSelection(bot, query, sessionManager);
+        }
+        else if (data === 'my_vps_orders') {
+            await VPSHandler.handleMyVPSOrders(bot, chatId, messageId);
+        }
+        else if (data === 'user_management') {
+            await UserManagementHandler.handleUserManagement(bot, chatId, messageId);
+        }
+        else if (data === 'view_all_users') {
+            await UserManagementHandler.handleViewAllUsers(bot, chatId, messageId, 0);
+        }
+        else if (data.startsWith('users_page_')) {
+            const page = parseInt(data.split('_')[2]);
+            await UserManagementHandler.handleViewAllUsers(bot, chatId, messageId, page);
+        }
+        else if (data === 'user_statistics') {
+            await UserManagementHandler.handleUserStatistics(bot, chatId, messageId);
+        }
+        else if (data === 'search_user') {
+            await UserManagementHandler.handleSearchUser(bot, chatId, messageId);
+            sessionManager.setAdminSession(chatId, { action: 'search_user' });
+        }
+        else if (data.startsWith('manage_user_balance_')) {
+            await UserManagementHandler.handleManageUserBalance(bot, query, sessionManager);
+        }
+        else if (data.startsWith('delete_user_')) {
+            await UserManagementHandler.handleDeleteUser(bot, query);
+        }
+        else if (data.startsWith('confirm_delete_user_')) {
+            await UserManagementHandler.confirmDeleteUser(bot, query);
+        }
+        else if (data === 'do_management') {
+            await DigitalOceanHandler.handleDOManagement(bot, chatId, messageId);
+        }
+        else if (data === 'set_do_token') {
+            await DigitalOceanHandler.handleSetDOToken(bot, chatId, messageId);
+            sessionManager.setAdminSession(chatId, { action: 'set_do_token' });
+        }
+        else if (data === 'view_droplets') {
+            await DigitalOceanHandler.handleViewDroplets(bot, chatId, messageId);
+        }
+        else if (data === 'manage_vps_products') {
+            await DigitalOceanHandler.handleManageVPSProducts(bot, chatId, messageId);
+        }
+        else if (data === 'add_vps_product') {
+            await DigitalOceanHandler.handleAddVPSProduct(bot, chatId, messageId);
+        }
+        else if (data.startsWith('select_size_')) {
+            await DigitalOceanHandler.handleSelectSize(bot, query, sessionManager);
+        }
+        else if (data === 'view_regions') {
+            await DigitalOceanHandler.handleViewRegions(bot, chatId, messageId);
         }
         else if (data === 'show_windows_selection') {
             await showWindowsSelection(bot, chatId, messageId, 0);
@@ -410,6 +485,20 @@ bot.on('message', async (msg) => {
                 await processBroadcast(bot, msg);
                 sessionManager.clearAdminSession(chatId);
                 return;
+            } else if (adminSession.action === 'search_user') {
+                await UserManagementHandler.processSearchUser(bot, msg, sessionManager);
+                sessionManager.clearAdminSession(chatId);
+                return;
+            } else if (adminSession.action === 'manage_user_balance') {
+                await UserManagementHandler.processManageUserBalance(bot, msg, sessionManager);
+                return;
+            } else if (adminSession.action === 'set_do_token') {
+                await DigitalOceanHandler.processDOToken(bot, msg, sessionManager);
+                sessionManager.clearAdminSession(chatId);
+                return;
+            } else if (adminSession.action === 'set_vps_price') {
+                await DigitalOceanHandler.processVPSPrice(bot, msg, sessionManager);
+                return;
             }
         }
 
@@ -422,6 +511,10 @@ bot.on('message', async (msg) => {
 
         const rdpSession = sessionManager.getUserSession(chatId);
         if (rdpSession) {
+            if (rdpSession.step === 'rdp_password' && rdpSession.type === 'rdp') {
+                await VPSHandler.handleRDPPassword(bot, msg, sessionManager);
+                return;
+            }
             if (rdpSession.installType === 'dedicated') {
                 await handleDedicatedVPSCredentials(bot, msg, sessionManager);
             } else {

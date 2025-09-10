@@ -4,6 +4,9 @@ function createMainMenu(isAdmin = false, hasPendingPayment = false) {
     const keyboard = [
         [
             BUTTONS.INSTALL_RDP,
+            BUTTONS.VPS_MENU
+        ],
+        [
             BUTTONS.DEPOSIT
         ],
         [
@@ -25,6 +28,9 @@ function createMainMenu(isAdmin = false, hasPendingPayment = false) {
         keyboard.splice(1, 0, [
             BUTTONS.ADD_BALANCE,
             BUTTONS.BROADCAST
+        ], [
+            BUTTONS.USER_MANAGEMENT,
+            BUTTONS.DO_MANAGEMENT
         ], [
             BUTTONS.MANAGE_DB
         ]);

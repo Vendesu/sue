@@ -28,6 +28,16 @@ const BUTTONS = {
     BROADCAST: { text: '📢 Broadcast', callback_data: 'broadcast' },
     MANAGE_DB: { text: '📊 Database', callback_data: 'manage_db' },
     
+    // VPS buttons
+    VPS_MENU: { text: '🖥️ VPS Services', callback_data: 'vps_menu' },
+    VPS_REGULAR: { text: '🖥️ VPS Biasa', callback_data: 'vps_regular' },
+    VPS_RDP: { text: '🪟 VPS + RDP', callback_data: 'vps_rdp' },
+    MY_VPS_ORDERS: { text: '📋 Pesanan Saya', callback_data: 'my_vps_orders' },
+    
+    // Admin management buttons
+    USER_MANAGEMENT: { text: '👥 Kelola User', callback_data: 'user_management' },
+    DO_MANAGEMENT: { text: '🌊 Digital Ocean', callback_data: 'do_management' },
+    
     // Copy buttons
     COPY_RDP: { text: '📋 Copy Detail RDP', callback_data: 'copy_rdp' },
     COPY_SERVER: { text: '📋 Copy Server', callback_data: 'copy_server' },
